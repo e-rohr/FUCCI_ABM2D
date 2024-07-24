@@ -1,21 +1,17 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import colors
 import math
 import scipy.sparse as sp
-import time
-import itertools
-import multiprocessing 
-import Cabm2d
-import Ccell_dens
+import sys, importlib
 
-
-
-
+import pyximport
+pyximport.install(setup_args={'include_dirs': np.get_include()},
+                  language_level = 3
+                 )
+import src.cells as cells
 
 
 ####################################################################################################
-##################################### Subroutines ##################################################
+##################################### Subroutine ##################################################
 
 
 def unif(R,L,rng):
@@ -27,76 +23,62 @@ def unif(R,L,rng):
     return (x,y)
 
 ####################################################################################################
-    
-def visualize_cell(X, Y, state, xmesh,ymesh, c_square, t):
-    fontsize = 20
-    fig, ax  = plt.subplots(1,2, figsize=(18,8), gridspec_kw={'width_ratios': [1, 1.3]})
-    colormap = np.array(["lightseagreen", "red", "yellow", "lime"])
-    ax[0].scatter(X,Y,c=colormap[state])
-    ax[0].set_xlabel("$x$",fontsize=fontsize)
-    ax[0].set_ylabel("$y$",fontsize=fontsize)
-    ax[0].set_title(f"2D Tumor Spheroid at $t$ = {t}",fontsize=fontsize)
-    ax[1].contourf(xmesh, ymesh, c_square, levels=10)
-    plt.colorbar(plt.contourf(xmesh, ymesh, c_square, levels=10), ax = ax[1], label = "$C(x,y)$")
-    ax[1].set_xlabel("$x$",fontsize=fontsize)
-    ax[1].set_ylabel("$y$",fontsize=fontsize)
-    ax[1].set_title(f"Nutrient Concentration Profile at $t$ = {t}",fontsize=fontsize)
-    fig.tight_layout()
-    
-    plt.show()
-    return    
-
-####################################################################################################
 ######################################### Main Routine #############################################
 
-def abm2d(path = "../data/",title = None, iter = -1, N = 2500,L = 1000,T = 240,I = 201,α = 0.0075,dmax = 2,dmin = 0.0005,mmax = .12,mmin = .06,Rr = .047,Ry = .4898,Rg = .0619, η1=5, η2=5, η3=15, c_a =0.4, c_d=0.1,c_m=0.5):
+'''
+Main routine: Runs ABM and outputs simulation results.
+
+Numerical Parameters:
+Nmax    - Maximum # of agents
+N       - Total # of living agents
+Nd      - # of dead agents
+L       - Domain side length
+T       - Total simulation time steps (in hrs)
+r_o     - Initial spheroid radius
+μ       - Agent migration distance
+σ       - Daughter agent dispersal distance (same as μ)
+I       - # of nodes along each axis (total # of nodes is I^2)
+α       - Consumption/Diffusion ratio
+
+Nutrient Parameters
+c_d     - Critical death concentration
+c_a     - Critical arrest concentration
+c_m     - Critical migration concentration
+
+Per Capita Agent Rates
+dmax    - Maximum death rate
+dmin    - Minimum death rate
+mmax    - Maximum migration rate
+mmin    - Minimum migration rate
+eta1      - Hill function index for arrest
+eta2      - Hill function index for migration
+eta3      - Hill function index for death
+Rr      - Red->Yellow transition rate
+Ry      - Yellow->Green transition rate
+Rg      - Green->Red transition rate (mitosis)
+'''
+def abm2d(path = "../data/", title = None,
+          Nmax = 30000, N = 1100, L = 1000, T = 240, 
+          I = 200, α = 0.01, pdeT = 1,
+          dmax = 2, dmin = 0.0005, mmax = .12, mmin = .06,
+          Rr = .047, Ry = .4898, Rg = .0619,
+          eta1=5, eta2=5, eta3=15, c_a =0.4, c_d=0.1, c_m=0.5,
+          r_o = 245, μ = 12, σ = 12 ):
     ####################################################################################################
     ##################################### Parameters ###################################################
     rng = np.random.default_rng()
 
-    # Numerical Parameters
-    Nmax = 30000
-    #N = 2000                          # Initial number of cells
-    Nd  = 0                           # Initial number of dead cells
-    #L = 1000                          # Side Length of Domain   (μm)
-    #T = 240                           # Maximum Simulation Time (hours)                                                           
-    r_o = 245                         # initial spheroid radius  (μm)
-    μ = 12                            # Migration distance       (μm)
-    σ = 12                            # Dispersal distance after mitosis (μm)
-    #I = 101
-
-    # Nutrient Parameters
-    #c_d = 0.1                          # Critical death concentration
-    #c_a = 0.4                          # Critical arrest concentration
-    #c_m = 0.5                          # Critical migration concentration
-
-
-    # Per Capita Agent Rates
-    #dmax = 2                          # Maximum death rate
-    #dmin = 0.0005                     # Minimum death rate
-    #mmax = 0.12                       # Maximum migration rate
-    #mmin = 0.06                       # Minimum migration rate
-    #η1 = 5                            # Hill function index for arrest
-    #η2 = 5                            # Hill function index for migration
-    #η3 = 15                           # Hill function index for death
-    #Rr = 0.047                        # Red->Yellow transition rate
-    #Ry = 0.4898                       # Yellow->Green transition rate
-    #Rg = 0.0619                       # Green->Red transition rate (mitosis)
-
-
+    Nd  = 0                    # Initial number of dead cells                                                    
+    n_days = int(T/24)
 
     # Finite Mesh Grid
-    xgrid = np.linspace(0, L, I)
-    ygrid = np.linspace(0, L, I)
     h = L/(I-1)
-    C_b = 1                           # Boundary condition
-    #α = .015                        # Consumption-Diffusion rate
-    pdeT = 1
+    C_b = 1                    # Boundary condition
 
     # State Variables
-    X = np.ones(Nmax) * (-1)
-    Y = np.ones(Nmax) * (-1)
-    state = np.ones(Nmax, dtype = int)*(-1)
+    X = np.full(shape = Nmax, fill_value = -1, dtype = np.float64)
+    Y = np.full(shape = Nmax, fill_value = -1, dtype = np.float64)
+    state = np.full(shape = Nmax, fill_value = -1, dtype = int)
     c_p = np.empty(Nmax)
     M = np.empty(Nmax)
     D = np.empty(Nmax)
@@ -107,11 +89,11 @@ def abm2d(path = "../data/",title = None, iter = -1, N = 2500,L = 1000,T = 240,I
 
     ################################## Equations (1), (4), and (5) #####################################
 
-    Rr_c = lambda c : Rr*(c**η1 / (c_a**η1 + c**η1))                       # (1)
+    Rr_c = lambda c : Rr*(c**eta1 / (c_a**eta1 + c**eta1))                       # (1)
 
-    m_c  = lambda c : (mmax - mmin)*(c**η2)/(c_m**η2 + c**η2) + mmin       # (4)
+    m_c  = lambda c : (mmax - mmin)*(c**eta2)/(c_m**eta2 + c**eta2) + mmin       # (4)
 
-    d_c  = lambda c : (dmax - dmin)*(1 - (c**η3)/(c_d**η3 + c**η3)) + dmin # (5)
+    d_c  = lambda c : (dmax - dmin)*(1 - (c**eta3)/(c_d**eta3 + c**eta3)) + dmin # (5)
 
 
 
@@ -121,11 +103,9 @@ def abm2d(path = "../data/",title = None, iter = -1, N = 2500,L = 1000,T = 240,I
         X[q],Y[q] = unif(r_o,L,rng)
 
     # Approximate cell density
-    C = np.zeros(I**2)
-    Ccell_dens.celldens_demo_serial(I,xgrid,ygrid,X,Y,N,h, C)
+    v = np.zeros(I**2)
+    cells.density(I,X,Y,N,h,v)
     
-    C_out = np.empty((T+1,I**2))
-    C_out[0] = C
     
 
     
@@ -185,7 +165,7 @@ def abm2d(path = "../data/",title = None, iter = -1, N = 2500,L = 1000,T = 240,I
 
     row[4*I-4 + 4*(I**2 - 4*I + 4)  : 4*I-4 + 5*(I**2 - 4*I + 4)] = [KIJ(i,j,I)   for i in range(1,I-1) for j in range(1,I-1)]
     col[4*I-4 + 4*(I**2 - 4*I + 4)  : 4*I-4 + 5*(I**2 - 4*I + 4)] = [KIJ(i,j,I)   for i in range(1,I-1) for j in range(1,I-1)]
-    data[4*I-4 + 4*(I**2 - 4*I + 4) : 4*I-4 + 5*(I**2 - 4*I + 4)] = [-C[KIJ(i,j,I)]*α - 4/h**2   for i in range(1,I-1) for j in range(1,I-1)]
+    data[4*I-4 + 4*(I**2 - 4*I + 4) : 4*I-4 + 5*(I**2 - 4*I + 4)] = [-v[KIJ(i,j,I)]*α - 4/h**2   for i in range(1,I-1) for j in range(1,I-1)]
 
     A = sp.csc_matrix((data, (row, col)), shape=(I**2, I**2))   
     c_vec, exitCode = sp.linalg.gmres(A, b, x0 = np.ones_like(b), tol = 1e-08)
@@ -204,17 +184,17 @@ def abm2d(path = "../data/",title = None, iter = -1, N = 2500,L = 1000,T = 240,I
     Nr = 0; Ny = 0; Ng = 0 # Initialise counts of cells of each type
 
     # Find proportion of red/yellow/green in freely cycling conditions
-    full_cycle = 1/Rr + 1/Ry + 1/Rg # Time of cell cycle -- Equation (S10)
-    redprop = 1/Rr / full_cycle # Proportion of time spent in red
-    yelprop = 1/Ry / full_cycle # Proportion of time spent in red
-    greprop = 1/Rg / full_cycle # Proportion of time spent in red
-
-    for q in range(N): #Interpolating nutrient concentration
-
-        c_p[q] = Cabm2d.interp2d(I, h, X[q], Y[q], c_vec)
-
-        if c_p[q] > C_A_BASE: # Identify cycling status of cell (region-wise)
+    full_cycle = (1/Rr) + (1/Ry) + (1/Rg) # Time of cell cycle -- Equation (S10)
+    redprop = (1/Rr) / full_cycle # Proportion of time spent in red
+    yelprop = (1/Ry) / full_cycle # Proportion of time spent in red
+    greprop = (1/Rg) / full_cycle # Proportion of time spent in red
+    
+    for q in range(N):
+        c_p[q] = cells.interp2d(I,h,X[q],Y[q],c_vec)
+        
+        if c_p[q] > C_A_BASE:
             u = rng.uniform()
+            
             if u < redprop:
                 state[q] = 1
                 Nr += 1
@@ -224,36 +204,35 @@ def abm2d(path = "../data/",title = None, iter = -1, N = 2500,L = 1000,T = 240,I
             elif (u < redprop + yelprop + greprop):
                 state[q] = 3
                 Ng += 1
-
-        else: # Tuned to get an initial arrest radius matching 
-            if (c_p[q] > C_A_BASE - 0.137): # Rr(c) < 0.01*Rr -- consider this as an initial arrest region. Testing shows this qualitatively matches the arrest regions in the spheroids with variable size.
+        else:
+            if Rr_c(c_p[q]) > 0.1*Rr:
                 u = rng.uniform()
-                if u < 0.16: # reduced chance of greens and yellows in arrest zone. Arrest calculated when green radial density drops below 20%
+                if u < 0.16:
                     u2 = rng.uniform()
-                    if u2 < (1/Ry)*(1/Ry + 1/Rg): # Time in yellow / time in yellow and green
+                    if u2 < (1/Ry)/((1/Ry) + (1/Rg)):
                         state[q] = 2
                         Ny += 1
                     else:
                         state[q] = 3
                         Ng += 1
-                else: # (1/Rg)/(1/Ry + 1/Rg) condition: time in green / time in yellow and green
+                else:
                     state[q] = 1
                     Nr += 1
-            else: # All red when local concentration under c_a - 0.137
+            else:
                 state[q] = 1
                 Nr += 1
-
         # Initialize cell rates (cycling, moving, death)
         if (state[q] == 1):
             cycr[q] = Rr_c(c_p[q]) # Equation (1)
+          
         elif (state[q] == 2):
             cycr[q] = Ry # Equation (2)
+          
         elif (state[q] == 3):
             cycr[q] = Rg # Equation (3)
-
+          
         M[q] = m_c(c_p[q]) # Equation (4)
         D[q] = d_c(c_p[q]) # Equation (5)
-
 
 
     
@@ -262,6 +241,7 @@ def abm2d(path = "../data/",title = None, iter = -1, N = 2500,L = 1000,T = 240,I
     rates = np.array([dmax, dmin, Rr, Ry, Rg, mmax, mmin])
     hyp = np.array([c_a, c_m, c_d])
     
+    # Record cell counts at each hour
     cellN_out = np.empty((5,T+1))
     cellN_out[0,0] = Nr
     cellN_out[1,0] = Ny
@@ -269,9 +249,10 @@ def abm2d(path = "../data/",title = None, iter = -1, N = 2500,L = 1000,T = 240,I
     cellN_out[3,0] = N
     cellN_out[4,0] = Nd
     
-    X_out = np.empty((T+1,Nmax))
-    Y_out = np.empty((T+1,Nmax))
-    state_out = np.empty((T+1,Nmax))
+    # Record agent positions at each day
+    X_out = np.empty((n_days + 1,Nmax))
+    Y_out = np.empty((n_days + 1,Nmax))
+    state_out = np.empty((n_days + 1,Nmax))
     X_out[0] = X
     Y_out[0] = Y
     state_out[0] = state
@@ -281,11 +262,17 @@ def abm2d(path = "../data/",title = None, iter = -1, N = 2500,L = 1000,T = 240,I
     while t < T:
 
         # Simulate Cell Events
-        (cellN, rates, hyp, Nmax, X, Y, state, D, M, cycr, c_p, c_vec, C, μ, σ, h, pdeT, η1, η2, η3, I) = Cabm2d.cells_gillespie(cellN, rates, hyp, Nmax, X, Y, state, D, M, cycr, c_p, c_vec, C, μ, σ, h, pdeT, η1, η2, η3, I, rng)
+        (cellN, X, Y, state, D, M, cycr, c_p, c_vec, v) = cells.gillespie(cellN, rates, hyp,
+                                                                          Nmax, X, Y, state,
+                                                                          D, M, cycr,
+                                                                          c_p, c_vec, v,
+                                                                          μ, σ, h, pdeT,
+                                                                          eta1, eta2, eta3,
+                                                                          I, rng)
         
         
         # Update nutrient concentration
-        data[4*I-4 + 4*(I**2 - 4*I + 4) : 4*I-4 + 5*(I**2 - 4*I + 4)] = [-C[KIJ(i,j,I)]*α - 4/h**2   for i in range(1,I-1) for j in range(1,I-1)]
+        data[4*I-4 + 4*(I**2 - 4*I + 4) : 4*I-4 + 5*(I**2 - 4*I + 4)] = [-v[KIJ(i,j,I)]*α - 4/h**2   for i in range(1,I-1) for j in range(1,I-1)]
         A = sp.csc_matrix((data, (row, col)), shape=(I**2, I**2))   
         c_vec, exitCode = sp.linalg.gmres(A, b, x0 = c_old, tol = 1e-06)
         c_grid = np.reshape(c_vec, (I,I))
@@ -299,17 +286,19 @@ def abm2d(path = "../data/",title = None, iter = -1, N = 2500,L = 1000,T = 240,I
         count += 1
         
         
-        
         cellN_out[0,count] = cellN[0]
         cellN_out[1,count] = cellN[1]
         cellN_out[2,count] = cellN[2]
         cellN_out[3,count] = cellN[3]
         cellN_out[4,count] = cellN[4]
-        C_out[count] = C
-        X_out[count] = X
-        Y_out[count] = Y
-        state_out[count] = state
-    
+        
+        # record agent positions and state every 24hrs
+        if t % 24 == 0:
+            day = t // 24
+            X_out[day] = X
+            Y_out[day] = Y
+            state_out[day] = state
+            
     out = {}
     
     
@@ -328,7 +317,7 @@ def abm2d(path = "../data/",title = None, iter = -1, N = 2500,L = 1000,T = 240,I
     out['N'] = cellN_out[3]
     out['Nd'] = cellN_out[4]
     
-    out['C'] = C_out
+    out['v'] = v
     out['c_grid'] = c_grid
     out['T'] = T
     out['I'] = I
@@ -339,18 +328,15 @@ def abm2d(path = "../data/",title = None, iter = -1, N = 2500,L = 1000,T = 240,I
     out['Ny'] = cellN_out[1]
     out['Ng'] = cellN_out[2]
     
-    out['η1'] = η1
-    out['η2'] = η2
-    out['η3'] = η3
+    out['eta1'] = eta1
+    out['eta2'] = eta2
+    out['eta3'] = eta3
     
     out['c_a'] = c_a
     out['c_d'] = c_d
     out['c_m'] = c_m
     
     if (title != None):
-        np.save(f"{path}/{title}.npy",out,allow_pickle=True)
+        np.savez(f"{path}/{title}",**out,allow_pickle=True)
     else:
-        if (iter > -1):
-            np.save(f"{path}/abm2d iter {iter} Rr {Rr} Ry {Ry} Rg {Rg} dmax {dmax} mmax {mmax} η1 {η1} η2 {η2} η3 {η3} c_a {c_a} c_d {c_d} c_m {c_m}.npy",out,allow_pickle=True)
-        else:
-            np.save(f"{path}/abm2d Rr {Rr} Ry {Ry} Rg {Rg} dmax {dmax} mmax {mmax} η1 {η1} η2 {η2} η3 {η3} c_a {c_a} c_d {c_d} c_m {c_m}.npy",out,allow_pickle=True)
+        np.savez(f"{path}/abm2d_out",**out,allow_pickle=True)

@@ -1,0 +1,41 @@
+abm_parameters:
+  c_a: 0.4
+  c_d: 0.1
+  c_m: 0.5
+  Rr: 0.047
+  Ry: 0.4898
+  Rg: 0.0619
+  dmax: 2
+  dmin: 0.0005
+  mmax: 0.12
+  mmin: 0.06
+  eta1: 5
+  eta2: 5
+  eta3: 15
+
+
+dataset1:
+  parameters:
+    c_a: 0.4
+    eta1: 5
+  n_samples: 1210
+
+dataset2:
+  parameters:
+    c_a: 0.4
+    c_d: 0.1
+    c_m: 0.5
+    Rr: 0.047
+    Ry: 0.4898
+    Rg: 0.0619
+    dmax: 2
+    dmin: 0.0005
+    mmax: 0.12
+    mmin: 0.06
+    eta1: 5
+    eta2: 5
+    eta3: 15
+
+  n_samples: 54450
+
+  
