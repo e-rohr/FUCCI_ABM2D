@@ -1,5 +1,6 @@
 import numpy as np
 import yaml
+import os
 
 
 def coarsen_density(density, I, h, bin_size):
@@ -18,7 +19,7 @@ def coarsen_density(density, I, h, bin_size):
     coarse_density = np.zeros(coarse_I**2)
 
     # Convert density to cell counts
-    v *= h**2
+    density *= h**2
 
     # Compute coarsened density by combining cell counts in subarrays of shape (bin_size, bin_size)
     for i in np.arange(coarse_I):
@@ -35,7 +36,7 @@ def coarsen_density(density, I, h, bin_size):
 
 
 def compile_data(dataset_num):
-    assert dataset_num in [1, 2]
+    assert dataset_num in [1,2]
 
     with open("../src/parameters.yaml") as p:
         params = yaml.safe_load(p)
@@ -43,64 +44,59 @@ def compile_data(dataset_num):
 
     if dataset_num == 1:
 
-        cell_counts = np.empty(shape=(1210, 4, 241))
-        density = np.empty(shape=(1210, 200, 200))
-        c_a_base = dataset_info["parameters"]["c_a"]
-        eta1_base = dataset_info["parameters"]["eta1"]
-
-        c_a_range = np.logspace(np.log10(c_a_base / 2), np.log10(2 * c_a_base), 11)
-        eta1_range = np.logspace(np.log10(eta1_base / 2), np.log10(2 * eta1_base), 11)
-
-        for index in np.arange(121):
-            for itr in np.arange(10):
-                i, j = divmod(index, 11)
-                file_name = f"../data/dataset1/c_a={c_a_range[i]}_eta1={eta1_range[j]}_itr={itr}.npz"
-                out = np.load(file_name, allow_pickle=True)
-
-                density[i * 11 + j * 10 + itr] = out["v"].reshape((200, 200))
-                cell_counts[i * 11 + j * 10 + itr, 0] = out["Nr"]
-                cell_counts[i * 11 + j * 10 + itr, 1] = out["Ny"]
-                cell_counts[i * 11 + j * 10 + itr, 2] = out["Ng"]
-                cell_counts[i * 11 + j * 10 + itr, 3] = out["Nd"]
-
-    elif dataset_num == 2:
-
         cell_counts = []
         density = []
-
-        for param1 in dataset_info["parameters"].keys():
-            for param2 in dataset_info["parameters"].keys():
-                if param2 == param1:
-                    continue
-
+        
+        for index in np.arange(121):
+            i, j = divmod(index, 11)
+            c_a_base = dataset_info["parameters"]["c_a"]
+            eta1_base = dataset_info["parameters"]["eta1"]
+            
+            c_a_range = np.logspace(np.log10(c_a_base / 2), np.log10(2 * c_a_base), 11)
+            eta1_range = np.logspace(
+                np.log10(eta1_base / 2), np.log10(2 * eta1_base), 11
+            )
+            for itr in np.arange(10):
+                file_name = f"../data/dataset1/c_a={c_a_range[i]}_eta1={eta1_range[j]}_itr={itr}.npz"
+                out = np.load(file_name, allow_pickle = True)
+                next_density_to_add = out['v']
+                density.append(next_density_to_add)
+                
+                next_cell_counts_to_add = np.array([out['Nr'],
+                                                    out['Ny'],
+                                                    out['Ng'],
+                                                    out['Nd']])
+                cell_counts.append(next_cell_counts_to_add)
+    
+    if dataset_num == 2:
+        cell_counts = []
+        density = []
+        for combo in dataset_info["parameter_combinations"]:
+            param1, param2 = combo.split(',')
+            
+            for index in np.arange(121):
+                i, j = divmod(index, 11)
                 param1_base = dataset_info["parameters"][param1]
                 param2_base = dataset_info["parameters"][param2]
-
+            
                 param1_range = np.logspace(
                     np.log10(param1_base / 2), np.log10(2 * param1_base), 11
                 )
                 param2_range = np.logspace(
                     np.log10(param2_base / 2), np.log10(2 * param2_base), 11
                 )
-
-                for i in np.arange(121):
-                    for j in np.arange(122):
-                        for itr in np.arange(10):
-
-                            file_name = f"../data/dataset2/{param1}={param1_range[i]}_{param2}={param2_range[j]}_itr={itr}.npz"
-                            out = np.load(file_name, allow_pickle=True)
-
-                            next_density_sample = out["v"].reshape((200, 200))
-                            next_cell_count_sample = np.array(
-                                [out["Nr"], out["Ny"], out["Ng"], out["Nd"]]
-                            )
-
-                            density.append(next_density_sample)
-                            cell_counts.append(next_cell_count_sample)
-
-        density = np.array(density)
-        cell_counts = np.array(cell_counts)
-
+                for itr in np.arange(10):
+                    file_name = f"../data/dataset2/({param1},{param2})/{param1}={param1_range[i]}_{param2}={param2_range[j]}_itr={itr}.npz"
+                    out = np.load(file_name, allow_pickle = True)
+                    next_density_to_add = out['v']
+                    density.append(next_density_to_add)
+                
+                    next_cell_counts_to_add = np.array([out['Nr'],
+                                                    out['Ny'],
+                                                    out['Ng'],
+                                                    out['Nd']])
+                    cell_counts.append(next_cell_counts_to_add)
+        
     np.save(f"../data/dataset{dataset_num}/density.npy", density, allow_pickle = True)
     np.save(f"../data/dataset{dataset_num}/cell_counts.npy",cell_counts, allow_pickle = True)
     return

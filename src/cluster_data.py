@@ -37,13 +37,22 @@ def generate_param_labels(param_combinations, labels, n_iterations = 5, n_param_
     param_labels = {}
     margins = {}
     
+    # Iterate over each combination of perturbed parameters e.g. (c_a,eta1), (c_a,eta2), ...
     for param_combination in param_combinations:
+        
+        # Initialize array of labels for each pair of parameter values
         param_labels[param_combination] = np.zeros(n_param_value_combos, dtype = int)
-        margins[param_combination] = np.zeros(n_param_value_combos)
+        
+        # margins[param_combination] = np.zeros(n_param_value_combos)
+        # Iterate over each pair of parameter values for the current pair of perturbed parameters
         for param_value_combo in range(n_param_value_combos):
+            # Count how many times each label is assigned to samples with this pair of parameter values
             label_counts = np.bincount(labels[param_combination][param_value_combo, :])
+            
+            # Take the most common label as the overall label for this pair of parameter values
             param_labels[param_combination][param_value_combo] = np.argmax(label_counts)
-            margins[param_combination][param_value_combo] = label_counts[np.argmax(label_counts)]/np.sum(label_counts)
+            
+            # margins[param_combination][param_value_combo] = label_counts[np.argmax(label_counts)]/np.sum(label_counts)
             
     return param_labels, margins
 

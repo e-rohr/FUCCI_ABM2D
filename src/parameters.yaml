@@ -1,27 +1,4 @@
 abm_parameters:
-  c_a: 0.4
-  c_d: 0.1
-  c_m: 0.5
-  Rr: 0.047
-  Ry: 0.4898
-  Rg: 0.0619
-  dmax: 2
-  dmin: 0.0005
-  mmax: 0.12
-  mmin: 0.06
-  eta1: 5
-  eta2: 5
-  eta3: 15
-
-
-dataset1:
-  parameters:
-    c_a: 0.4
-    eta1: 5
-  n_samples: 1210
-
-dataset2:
-  parameters:
     c_a: 0.4
     c_d: 0.1
     c_m: 0.5
@@ -36,6 +13,116 @@ dataset2:
     eta2: 5
     eta3: 15
 
-  n_samples: 54450
 
+dataset1:
+  parameters:
+    c_a: 0.4
+    eta1: 5
+  n_samples: 1210
+
+dataset2:
+  parameters:
+    c_a: 0.4
+    c_d: 0.1
+    c_m: 0.5
+    dmax: 2
+    dmin: 0.0005
+    mmax: 0.12
+    mmin: 0.06
+    eta1: 5
+    eta2: 5
+    eta3: 15
+
+  n_samples: 54450
   
+  parameter_combinations:
+    - c_a,c_d
+    - c_a,c_m
+    - c_a,dmax
+    - c_a,dmin
+    - c_a,mmax
+    - c_a,mmin
+    - c_a,eta1
+    - c_a,eta2
+    - c_a,eta3
+    - c_d,c_a
+    - c_d,c_m
+    - c_d,dmax
+    - c_d,dmin
+    - c_d,mmax
+    - c_d,mmin
+    - c_d,eta1
+    - c_d,eta2
+    - c_d,eta3
+    - c_m,c_a
+    - c_m,c_d
+    - c_m,dmax
+    - c_m,dmin
+    - c_m,mmax
+    - c_m,mmin
+    - c_m,eta1
+    - c_m,eta2
+    - c_m,eta3
+    - dmax,c_a
+    - dmax,c_d
+    - dmax,c_m
+    - dmax,dmin
+    - dmax,mmax
+    - dmax,mmin
+    - dmax,eta1
+    - dmax,eta2
+    - dmax,eta3
+    - dmin,c_a
+    - dmin,c_d
+    - dmin,c_m
+    - dmin,dmax
+    - dmin,mmax
+    - dmin,mmin
+    - dmin,eta1
+    - dmin,eta2
+    - dmin,eta3
+    - mmax,c_a
+    - mmax,c_d
+    - mmax,c_m
+    - mmax,dmax
+    - mmax,dmin
+    - mmax,mmin
+    - mmax,eta1
+    - mmax,eta2
+    - mmax,eta3
+    - mmin,c_a
+    - mmin,c_d
+    - mmin,c_m
+    - mmin,dmax
+    - mmin,dmin
+    - mmin,mmax
+    - mmin,eta1
+    - mmin,eta2
+    - mmin,eta3
+    - eta1,c_a
+    - eta1,c_d
+    - eta1,c_m
+    - eta1,dmax
+    - eta1,dmin
+    - eta1,mmax
+    - eta1,mmin
+    - eta1,eta2
+    - eta1,eta3
+    - eta2,c_a
+    - eta2,c_d
+    - eta2,c_m
+    - eta2,dmax
+    - eta2,dmin
+    - eta2,mmax
+    - eta2,mmin
+    - eta2,eta1
+    - eta2,eta3
+    - eta3,c_a
+    - eta3,c_d
+    - eta3,c_m
+    - eta3,dmax
+    - eta3,dmin
+    - eta3,mmax
+    - eta3,mmin
+    - eta3,eta1
+    - eta3,eta2

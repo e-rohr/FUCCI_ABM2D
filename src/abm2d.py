@@ -205,7 +205,7 @@ def abm2d(path = "../data/", title = None,
                 state[q] = 3
                 Ng += 1
         else:
-            if Rr_c(c_p[q]) > 0.1*Rr:
+            if Rr*(c_p[q]**eta1 / (C_A_BASE**eta1 + c_p[q]**eta1)) > 0.1*Rr:
                 u = rng.uniform()
                 if u < 0.16:
                     u2 = rng.uniform()
@@ -223,7 +223,7 @@ def abm2d(path = "../data/", title = None,
                 Nr += 1
         # Initialize cell rates (cycling, moving, death)
         if (state[q] == 1):
-            cycr[q] = Rr_c(c_p[q]) # Equation (1)
+            cycr[q] = Rr*(c_p[q]**eta1 / (C_A_BASE**eta1 + c_p[q]**eta1)) # Equation (1)
           
         elif (state[q] == 2):
             cycr[q] = Ry # Equation (2)
