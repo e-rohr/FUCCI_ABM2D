@@ -26,9 +26,9 @@ if __name__ == "__main__":
                 eta1_base = params["dataset1"]["parameters"]["eta1"]
 
             # 121x121 logspaced grid of parameter combinations
-            c_a_range = np.logspace(np.log10(c_a_base / 2), np.log10(2 * c_a_base), 11)
+            c_a_range = np.logspace(np.log2(c_a_base / 2), np.log2(2 * c_a_base), 11, base = 2)
             eta1_range = np.logspace(
-                np.log10(eta1_base / 2), np.log10(2 * eta1_base), 11
+                np.log2(eta1_base / 2), np.log2(2 * eta1_base), 11, base = 2
             )
 
             # Simulate 10 realizations of ABM with the parameter combination
@@ -52,29 +52,19 @@ if __name__ == "__main__":
 
             with open("../src/parameters.yaml") as p:
                 params = yaml.safe_load(p)
-                dataset2_params = params["dataset2"]["parameters"]
-            
-            # Find the parameter combination corresponding to param_combo_number
-            param_combos = []
-            for param1_itr in dataset2_params.keys():
-                for param2_itr in dataset2_params.keys():
-                    if param2_itr == param1_itr:
-                        continue
-                    else:
-                        param_combos.append([param1_itr, param2_itr])
+                dataset2_info = params["dataset2"]
 
+            combo = dataset2_info["parameter_combinations"][param_combo_number]
+            param1, param2 = combo.split(",")
             
-            param1 = param_combos[param_combo_number][0]
-            param2 = param_combos[param_combo_number][1]
-            
-            param1_base = dataset2_params[param1]
-            param2_base = dataset2_params[param2]
+            param1_base = dataset2_info["parameters"][param1]
+            param2_base = dataset2_info["parameters"][param2]
 
             param1_range = np.logspace(
-                np.log10(param1_base / 2), np.log10(2 * param1_base), 11
+                np.log2(param1_base / 2), np.log2(2 * param1_base), 11, base = 2
             )
             param2_range = np.logspace(
-                np.log10(param2_base / 2), np.log10(2 * param2_base), 11
+                np.log2(param2_base / 2), np.log2(2 * param2_base), 11, base = 2
             )
             
             # Simulate all 121 combinations of parameter values for param1 and param2
@@ -88,5 +78,4 @@ if __name__ == "__main__":
                 }
                 if not os.path.isdir(args['path']):
                     os.makedirs(args["path"])
-                print(param_val_index, flush = True)
                 abm2d(**args)

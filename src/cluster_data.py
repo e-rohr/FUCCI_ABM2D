@@ -4,17 +4,6 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import accuracy_score, confusion_matrix
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-
-def apply_KMeans(Z_train, Z_test, n_clusters = 4, random_state = 57):
-    kmeans = KMeans(n_clusters = 4,n_init = 'auto', random_state = random_state)
-    
-    kmeans.fit(Z_train)
-    
-    train_labels = kmeans.predict(Z_train)
-    test_labels = kmeans.predict(Z_test)
-    
-    return train_labels, test_labels, kmeans
-
 def generate_param_labels(param_combinations, labels, n_iterations = 5, n_param_value_combos = 100):
     '''
     generate_param_labels : Assign a class labels to each parameter combination. Each combination has 5 iterations: assign the most common class label to the overall combination.

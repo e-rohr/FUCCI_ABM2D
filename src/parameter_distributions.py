@@ -1,5 +1,5 @@
 import yaml
-import numpy
+import numpy as np
 
 def write_param_combos_to_yaml():
     with open("../src/parameters.yaml") as p:
@@ -33,7 +33,7 @@ def parameter_distributions(labels,cluster_num):
     for param_name in param_bases.keys():
         param_distns[param_name] = []
         param_ranges[param_name] = np.logspace(
-                np.log10(param_bases[param_name] / 2), np.log10(2 * param_bases[param_name]), 11
+                np.log2(param_bases[param_name] / 2), np.log2(2 * param_bases[param_name]), 11, base = 2
             )
     
     for combo_index, combo in enumerate(param_combos):
@@ -41,18 +41,13 @@ def parameter_distributions(labels,cluster_num):
         for param_index in np.arange(121):
             param1_index, param2_index = divmod(param_index, 11)
             for itr in np.arange(10):
-                if labels[combo_index*1210 + param_index*11 + itr] == cluster_num:
+                if labels[combo_index*1210 + param_index*10 + itr] == cluster_num:
                     param_distns[param1].append(
-                        np.log10(param_ranges[param1][param1_index]/param_bases[param_1]) 
+                        np.log2(param_ranges[param1][param1_index]/param_bases[param1]) 
                     )
                     param_distns[param2].append(
-                        np.log10(param_ranges[param2][param2_index]/param_bases[param_2]) 
+                        np.log2(param_ranges[param2][param2_index]/param_bases[param2]) 
                     )
-                    
-                    
-                        # transformed_value = np.log2(samples[combo][param_index, pair_loc]/param_base) 
-                        # param_distn.append(transformed_value)
-                        # param_distn.append(samples[combo][param_index, pair_loc]/param_base)
     
     for param_name in param_bases.keys():
         param_distns[param_name] = np.array(param_distns[param_name])

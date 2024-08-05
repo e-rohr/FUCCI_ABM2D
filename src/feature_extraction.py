@@ -52,9 +52,9 @@ def compile_data(dataset_num):
             c_a_base = dataset_info["parameters"]["c_a"]
             eta1_base = dataset_info["parameters"]["eta1"]
             
-            c_a_range = np.logspace(np.log10(c_a_base / 2), np.log10(2 * c_a_base), 11)
+            c_a_range = np.logspace(np.log2(c_a_base / 2), np.log2(2 * c_a_base), 11, base = 2)
             eta1_range = np.logspace(
-                np.log10(eta1_base / 2), np.log10(2 * eta1_base), 11
+                np.log2(eta1_base / 2), np.log2(2 * eta1_base), 11, base = 2
             )
             for itr in np.arange(10):
                 file_name = f"../data/dataset1/c_a={c_a_range[i]}_eta1={eta1_range[j]}_itr={itr}.npz"
@@ -80,10 +80,10 @@ def compile_data(dataset_num):
                 param2_base = dataset_info["parameters"][param2]
             
                 param1_range = np.logspace(
-                    np.log10(param1_base / 2), np.log10(2 * param1_base), 11
+                    np.log2(param1_base / 2), np.log2(2 * param1_base), 11, base = 2
                 )
                 param2_range = np.logspace(
-                    np.log10(param2_base / 2), np.log10(2 * param2_base), 11
+                    np.log2(param2_base / 2), np.log2(2 * param2_base), 11, base = 2
                 )
                 for itr in np.arange(10):
                     file_name = f"../data/dataset2/({param1},{param2})/{param1}={param1_range[i]}_{param2}={param2_range[j]}_itr={itr}.npz"
