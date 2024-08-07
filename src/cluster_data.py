@@ -4,6 +4,9 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import accuracy_score, confusion_matrix
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+
+
+
 def generate_param_labels(param_combinations, labels, n_iterations = 5, n_param_value_combos = 100):
     '''
     generate_param_labels : Assign a class labels to each parameter combination. Each combination has 5 iterations: assign the most common class label to the overall combination.
@@ -45,8 +48,15 @@ def generate_param_labels(param_combinations, labels, n_iterations = 5, n_param_
             
     return param_labels, margins
 
-        
+def compute_oos(param_labels, predicted_labels):
+    train_labels = []
+    for combo in param_labels.keys():
+        combo_train_labels = np.repeat(param_labels[combo], 5)
+        train_labels.append(combo_train_labels)
+    train_labels = np.array(train_labels).flatten()
     
+    assert predicted_labels.size == train_labels.size
+    return  accuracy_score(train_labels, predicted_labels)
 
 def generate_confusion_matrix(param_labels, kmeans_predict_labels, n_clusters):
     '''
@@ -72,6 +82,7 @@ def generate_confusion_matrix(param_labels, kmeans_predict_labels, n_clusters):
     cm[np.isnan(cm)] = 0
     
     return cm
+
 
 
 def plot_confusion_matrix_and_OOS(confusion_matrix, y_true, y_pred, n_clusters, xlabel, ylabel, title):
@@ -110,10 +121,5 @@ def plot_confusion_matrix_and_OOS(confusion_matrix, y_true, y_pred, n_clusters, 
     plt.colorbar(im, cax=cax)
     
     return fig
-            
-                
-    
-    
-    
-    
-    
+
+

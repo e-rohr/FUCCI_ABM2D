@@ -112,35 +112,45 @@ def split_data(X, itr_cutoff):
         elif i % 10 >= itr_cutoff:
             X_test.append(sample)
 
-    return X_train, X_test
+    return np.array(X_train), np.array(X_test)
 
 
-def scale_density(X, coarseness=1):
+def scale_density(X_train, X_test, coarseness=1):
 
-    X_scaled = np.copy(X)
-
+    Xt_train = np.copy(X_train)
+    Xt_test = np.copy(X_test)
+    
     # Normalize by pixel
-    means = np.mean(X, axis=0)
+    means = np.mean(X_train, axis=0)
 
     # Scale variance by whole dataset
-    std = np.std(X)
+    std = np.std(X_train)
 
-    X_scaled -= means
-    X_scaled /= std
+    Xt_train -= means
+    Xt_train /= std
+    
+    Xt_test -= means
+    Xt_test /= std
 
-    return X_scaled
+    return Xt_train, Xt_test
 
 
-def scale_population_curves(X):
-    X_scaled = np.copy(X)
+def scale_population_curves(X_train, X_test):
+    
+    Xt_train = np.copy(X_train)
+    Xt_test = np.copy(X_test)
+    
     for subpopulation in range(4):
-        population_curve = X_scaled[:, subpopulation, :]
-
+        subpopulation_curve = Xt_train[:, subpopulation, :]
+        
         # Normalize by time point
-        means = np.mean(population_curve, axis=0)
-        std = np.std(population_curve)
+        means = np.mean(subpopulation_curve, axis=0)
+        std = np.std(subpopulation_curve)
 
-        X_scaled[:, subpopulation, :] -= means
-        X_scaled[:, subpopulation, :] /= std
+        Xt_train[:, subpopulation, :] -= means
+        Xt_train[:, subpopulation, :] /= std
+        
+        Xt_test[:, subpopulation, :] -= means
+        Xt_test[:, subpopulation, :] /= std
 
-    return X_scaled
+    return Xt_train, Xt_test

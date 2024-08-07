@@ -21,7 +21,7 @@ def write_param_combos_to_yaml():
     return
     
 
-def parameter_distributions(labels,cluster_num):
+def parameter_distributions(labels,cluster_num, n_itrs):
     with open("../src/parameters.yaml") as p:
         params_yml = yaml.safe_load(p)
         param_bases = params_yml["dataset2"]["parameters"]
@@ -40,8 +40,8 @@ def parameter_distributions(labels,cluster_num):
         param1, param2 = combo.split(',')
         for param_index in np.arange(121):
             param1_index, param2_index = divmod(param_index, 11)
-            for itr in np.arange(10):
-                if labels[combo_index*1210 + param_index*10 + itr] == cluster_num:
+            for itr in np.arange(n_itrs):
+                if labels[combo_index*121*n_itrs + param_index*n_itrs + itr] == cluster_num:
                     param_distns[param1].append(
                         np.log2(param_ranges[param1][param1_index]/param_bases[param1]) 
                     )
