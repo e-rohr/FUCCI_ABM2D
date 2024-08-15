@@ -337,6 +337,6 @@ def abm2d(path = "../data/", title = None,
     out['c_m'] = c_m
     
     if (title != None):
-        np.savez(f"{path}/{title}",**out,allow_pickle=True)
+        np.savez_compressed(f"{path}/{title}",**out)
     else:
-        np.savez(f"{path}/abm2d_out",**out,allow_pickle=True)
+        np.savez_compressed(f"{path}/abm2d_out",**out)

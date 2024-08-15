@@ -115,10 +115,11 @@ def split_data(X, itr_cutoff):
     return np.array(X_train), np.array(X_test)
 
 
-def scale_density(X_train, X_test, coarseness=1):
+def scale_density(X_train, X_test, X = []):
 
     Xt_train = np.copy(X_train)
     Xt_test = np.copy(X_test)
+    Xt = np.copy(X)
     
     # Normalize by pixel
     means = np.mean(X_train, axis=0)
@@ -131,14 +132,18 @@ def scale_density(X_train, X_test, coarseness=1):
     
     Xt_test -= means
     Xt_test /= std
+    
+    Xt -= means
+    Xt /= std
+        
+    return Xt_train, Xt_test, Xt
 
-    return Xt_train, Xt_test
 
-
-def scale_population_curves(X_train, X_test):
+def scale_cell_counts(X_train, X_test, X):
     
     Xt_train = np.copy(X_train)
     Xt_test = np.copy(X_test)
+    Xt = np.copy(X)
     
     for subpopulation in range(4):
         subpopulation_curve = Xt_train[:, subpopulation, :]
@@ -152,5 +157,9 @@ def scale_population_curves(X_train, X_test):
         
         Xt_test[:, subpopulation, :] -= means
         Xt_test[:, subpopulation, :] /= std
+        
+        Xt[:, subpopulation, :] -= means
+        Xt[:, subpopulation, :] /= std
+        
 
-    return Xt_train, Xt_test
+    return Xt_train, Xt_test, Xt

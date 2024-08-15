@@ -5,7 +5,7 @@
 #SBATCH --mail-user=rohre1@tcnj.edu      # Who to send emails to
 #SBATCH --mail-type=ALL                  # Send emails on start, end and failure
 #SBATCH --job-name=dataset1_gen       # Name to show in the job queue
-#SBATCH --output=job.dataset1_gen.%j.out              # Name of stdout output file (%j expands to jobId)
+#SBATCH --output=job.dataset1_gen.%a.out              # Name of stdout output file (%a expands to SLURM_ARRAY_TASK_ID)
 #SBATCH --ntasks-per-node=1                       # Total number of mpi tasks requested
 #SBATCH --nodes=1                        # Total number of nodes requested
 #SBATCH --partition=short                 # Partition (a.k.a. queue) to use

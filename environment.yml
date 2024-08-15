@@ -9,7 +9,7 @@ dependencies:
   - brotli=1.0.9=h5eee18b_8
   - brotli-bin=1.0.9=h5eee18b_8
   - bzip2=1.0.8=h5eee18b_6
-  - ca-certificates=2024.3.11=h06a4308_0
+  - ca-certificates=2024.7.2=h06a4308_0
   - contourpy=1.2.0=py312hdb19cb5_0
   - cycler=0.11.0=pyhd3eb1b0_0
   - cyrus-sasl=2.1.28=h52b45da_1
@@ -101,6 +101,10 @@ dependencies:
   - unicodedata2=15.1.0=py312h5eee18b_0
   - wheel=0.43.0=py312h06a4308_0
   - xz=5.4.6=h5eee18b_1
+  - yaml=0.2.5=h7b6447c_0
   - zlib=1.2.13=h5eee18b_1
   - zstd=1.5.5=hc292b87_2
+  - pip:
+      - e==1.4.5
+      - joypy==0.2.6
 prefix: /home/hpc/rohre1/miniconda3/envs/FUCCI_ABM2D
