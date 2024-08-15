@@ -9,7 +9,10 @@ cnp.import_array()
 DTYPE = np.float64
 ctypedef cnp.float64_t DTYPE_t
 
-
+'''
+The functions in this file are from the Python library ksdisc created by Viktor Wase (which can be found at https://pypi.org/project/ksdisc/). 
+Here they are implemented with cython to speed up the runtime of the dataset 2 notebooks.
+'''
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
