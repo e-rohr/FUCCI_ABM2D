@@ -11,26 +11,20 @@ def coarsen_density(density, I, h, bin_size):
     if bin_size == 1:
         return density
 
-    # New control area and number of nodes
-    coarse_h = h * bin_size
+    # New number of nodes
     coarse_I = I // bin_size
 
     # Initialize coarsened grid
     coarse_density = np.zeros(coarse_I**2)
 
-    # Convert density to cell counts
-    density *= h**2
-
     # Compute coarsened density by combining cell counts in subarrays of shape (bin_size, bin_size)
     for i in np.arange(coarse_I):
         for j in np.arange(coarse_I):
             coarse_density[i * coarse_I + j] = density[
-                i * bin_size : i * bin_size + bin_size - 1,
-                j * bin_size : j * bin_size + bin_size - 1,
+                i * bin_size : i * bin_size + bin_size,
+                j * bin_size : j * bin_size + bin_size,
             ].sum()
 
-    # Divide cell counts by area to obtain density
-    coarse_density /= coarse_h**2
 
     return coarse_density
 
