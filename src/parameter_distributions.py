@@ -2,6 +2,19 @@ import yaml
 import numpy as np
 
 def write_param_combos_to_yaml():
+    """
+    Extracts all unique ordered pairs of parameter names from dataset2 in the YAML file
+    and writes them back to the same YAML file under the key 'parameter_combinations'.
+
+    The function skips pairs where both parameters are the same (e.g., (c_a, c_a)).
+
+    It modifies the existing YAML file in-place by adding or overwriting
+    the 'parameter_combinations' field under 'dataset2'.
+
+    Returns
+    -------
+    None
+    """
     with open("../src/parameters.yaml") as p:
         params_yml = yaml.safe_load(p)
         params = params_yml["dataset2"]["parameters"]
@@ -21,7 +34,34 @@ def write_param_combos_to_yaml():
     return
     
 
-def parameter_distributions(labels,cluster_num, n_itrs):
+def parameter_distributions(labels, cluster_num, n_itrs):
+    """
+    Computes the distribution of parameter values (log2-scaled relative to base) 
+    for a specific cluster across all parameter combinations.
+
+    Parameters
+    ----------
+    labels : ndarray of shape (n_samples,)
+        Cluster labels for each sample in the full dataset (ordered by combination, index, then iteration).
+    cluster_num : int
+        The specific cluster label to compute distributions for.
+    n_itrs : int
+        Number of iterations per parameter pair and setting (usually 10).
+
+    Returns
+    -------
+    param_distns : dict of {str: ndarray}
+        Dictionary mapping each parameter name to an array of log2-scaled relative values
+        (i.e., `log2(actual / base)`) for samples assigned to the specified cluster.
+
+    Notes
+    -----
+    - Assumes `parameters.yaml` includes both:
+        - `dataset2.parameters`: dict of base values for parameters.
+        - `dataset2.parameter_combinations`: list of comma-separated param name pairs.
+    - Values are normalized by their base and log2-scaled to represent fold-change.
+    - Each parameter's array may be empty if no corresponding values were assigned to the cluster.
+    """
     with open("../src/parameters.yaml") as p:
         params_yml = yaml.safe_load(p)
         param_bases = params_yml["dataset2"]["parameters"]

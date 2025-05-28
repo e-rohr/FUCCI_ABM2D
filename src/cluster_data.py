@@ -11,23 +11,29 @@ from src.feature_extraction import split_data
 
 
 
-def generate_param_labels(param_combinations, labels, n_iterations = 5, n_param_value_combos = 100):
-    '''
-    generate_param_labels : Assign a class labels to each parameter combination. Each combination has 5 iterations: assign the most common class label to the overall combination.
+def generate_param_labels(param_combinations, labels, n_iterations=5, n_param_value_combos=100):
+    """
+    Assigns the most common cluster label across multiple iterations to each parameter value combo.
 
-    inputs:
-    
-        param_combinations: list of combinations of parameters (order matters)
-        labels : dictionary, with keys matching param_combinations, where associated values are numpy arrays containing class labels for each observation.
-                 Numpy array shape = (n_param_value_combinations , n_iterations) 
-        n_iterations : # of iterations per combination of parameter values
-        n_param_value_combinations : # of combinations of parameter values for a given combination of parameters
-        
-    outputs:
+    Parameters
+    ----------
+    param_combinations : list of str
+        List of parameter combination names.
+    labels : dict
+        Dictionary of shape (combo_name → [param_value_combo × iteration]) with cluster labels.
+    n_iterations : int
+        Number of clustering iterations.
+    n_param_value_combos : int
+        Number of parameter value combinations per pair.
 
-        param_labels : dictionary containing class label for each value combination for each parameter combination
-    
-    '''
+    Returns
+    -------
+    param_labels : dict
+        Dictionary of shape (combo_name → [param_value_combo]) with dominant cluster label.
+    margins : dict
+        Empty dictionary (can store confidence margins if enabled).
+    """
+
     labels = labels.copy()
     
     param_labels = {}
@@ -52,8 +58,34 @@ def generate_param_labels(param_combinations, labels, n_iterations = 5, n_param_
             
     return param_labels, margins
 
-def clustering_pipeline(X, descriptor_name, title, scaler, descriptor_size, num_clusters = 4):
-    num_samples = X.shape[0]
+def clustering_pipeline(X, descriptor_name, title, scaler, descriptor_size, num_clusters=4):
+    """
+    Full pipeline to preprocess data, perform PCA and k-means clustering, and evaluate
+    cluster assignments using a confusion matrix based on true parameter combinations.
+
+    Parameters
+    ----------
+    X : np.ndarray
+        Full dataset to cluster.
+    descriptor_name : str
+        Name used for saving outputs.
+    title : str
+        Title for plots.
+    scaler : function
+        Function to scale the data.
+    descriptor_size : int
+        Number of features per sample after flattening.
+    num_clusters : int
+        Number of clusters for k-means.
+
+    Returns
+    -------
+    results : dict
+        Dictionary with keys:
+            'X_reduced' : PCA-reduced representation of X.
+            'X_labels' : Cluster labels assigned to each sample.
+            'explained_variance_ratio' : PCA variance explained.
+    """
     
     # Initialize steps in the pipeline
     pca = PCA(n_components = 3, random_state = 0)
@@ -92,8 +124,6 @@ def clustering_pipeline(X, descriptor_name, title, scaler, descriptor_size, num_
                                             n_iterations = 5,
                                             n_param_value_combos = 121)
 
-
-    # Relabel clusters by increasing mean value of c_a
     
     ## Create a vector of c_a values corresponding to all training data
     c_a_vec = []
@@ -153,21 +183,24 @@ def clustering_pipeline(X, descriptor_name, title, scaler, descriptor_size, num_
     
 
 def generate_confusion_matrix(param_labels, kmeans_predict_labels, n_clusters):
-    '''
-    generate_confusion_matrix : Create normalized confusion matrix from parameter class labels
+    """
+    Computes and normalizes the confusion matrix between parameter-inferred and predicted labels.
 
-    inputs:
-    
-        param_labels : dictionary containing class label for each value combination for each parameter combination
-                        {key = (param1_name,param2_name) : value = numpy.array(n_param_value_combinations)}
-        kmeans_predict_labels : dictionary, with keys matching param_combinations, where associated values are numpy arrays containing class labels for each observation.
-                 Numpy array shape = (n_param_value_combinations , n_iterations) 
-        n_clusters : # of clusters used by k-means algorithm
-    outputs:
+    Parameters
+    ----------
+    param_labels : np.ndarray
+        Ground-truth labels inferred from parameter combinations.
+    kmeans_predict_labels : np.ndarray
+        Predicted labels from k-means.
+    n_clusters : int
+        Number of clusters.
 
-        
-    
-    '''
+    Returns
+    -------
+    cm : np.ndarray
+        Normalized confusion matrix.
+    """
+    ...
     #create confusion matrix
     cm = confusion_matrix(param_labels, kmeans_predict_labels, labels=np.arange(n_clusters))
     #normalize
@@ -177,9 +210,34 @@ def generate_confusion_matrix(param_labels, kmeans_predict_labels, n_clusters):
     
     return cm
 
-
-
 def plot_confusion_matrix_and_OOS(confusion_matrix, y_true, y_pred, n_clusters, xlabel, ylabel, title):
+    """
+    Visualizes the normalized confusion matrix and annotates it with OOS accuracy.
+
+    Parameters
+    ----------
+    confusion_matrix : np.ndarray
+        Normalized confusion matrix.
+    y_true : np.ndarray
+        True labels.
+    y_pred : np.ndarray
+        Predicted labels.
+    n_clusters : int
+        Number of clusters.
+    xlabel : str
+        Label for x-axis.
+    ylabel : str
+        Label for y-axis.
+    title : str
+        Plot title.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        Matplotlib figure with annotated confusion matrix.
+    """
+    ...
+    
     acc = accuracy_score(y_true,y_pred)
     font = {'size'   : 20}
     plt.rc('font', **font)
@@ -194,11 +252,7 @@ def plot_confusion_matrix_and_OOS(confusion_matrix, y_true, y_pred, n_clusters, 
     
     plt.ylabel(ylabel)
     plt.xlabel(xlabel)
-    ax.xaxis.tick_bottom()
-    #ax.set_xticklabels(np.arange(num_clusters))
-    #ax.set_yticklabels(np.arange(num_clusters))
-    
-    
+    ax.xaxis.tick_bottom()    
 
     for i in np.arange(n_clusters):
         for j in np.arange(n_clusters):

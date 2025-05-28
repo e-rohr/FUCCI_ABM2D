@@ -1,7 +1,7 @@
 import numpy as np
 import math
 import scipy.sparse as sp
-import sys, importlib
+import sys, importlib, pdb
 
 import pyximport
 pyximport.install(setup_args={'include_dirs': np.get_include()},
@@ -268,8 +268,7 @@ def abm2d(path = "../data/", title = None,
                                                                           c_p, c_vec, v,
                                                                           μ, σ, h, pdeT,
                                                                           eta1, eta2, eta3,
-                                                                          I, rng)
-        
+                                                                          I, rng)        
         
         # Update nutrient concentration
         data[4*I-4 + 4*(I**2 - 4*I + 4) : 4*I-4 + 5*(I**2 - 4*I + 4)] = [-v[KIJ(i,j,I)]*α - 4/h**2   for i in range(1,I-1) for j in range(1,I-1)]
