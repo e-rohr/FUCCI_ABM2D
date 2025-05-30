@@ -1,1 +1,1 @@
-The full Dataset2 is too large to upload to Github. Instead, you can generate this datset locally using the `generate_dataset2.sh` file in `scripts`ge. Note that this is a slurm Sbatch submission script that runs an array of 450 parallel jobs. All jobs completed within 24 hours for us.
+The full Dataset2 is too large to upload to Github. Instead, you can generate this datset locally using the `generate_dataset2.sh` file in `scripts`. Note that this is a slurm Sbatch submission script that runs an array of 450 parallel jobs. All jobs completed within 24 hours for us.
