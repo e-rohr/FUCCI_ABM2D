@@ -1,0 +1,1 @@
+The full Sobol Dataset is too large to upload to Github. Instead, you can generate this datset locally using the `generate_sobol_dataset.sh` file in `scripts`. Note that this is a slurm Sbatch submission script that runs 63 parallel jobs. All 63 jobs completed within 24 hours for us. 
