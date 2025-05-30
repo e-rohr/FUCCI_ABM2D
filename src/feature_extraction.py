@@ -63,7 +63,7 @@ def coarsen_density(density, I, h, bin_size):
 
 
 def compile_data(dataset_num):
-     """
+    """
     Loads simulation data from `.npz` files, extracts density and cell count information,
     and saves the compiled results into `.npy` files for the specified dataset.
 

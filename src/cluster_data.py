@@ -86,6 +86,7 @@ def clustering_pipeline(X, descriptor_name, title, scaler, descriptor_size, num_
             'X_labels' : Cluster labels assigned to each sample.
             'explained_variance_ratio' : PCA variance explained.
     """
+    num_samples = X.shape[0]
     
     # Initialize steps in the pipeline
     pca = PCA(n_components = 3, random_state = 0)
