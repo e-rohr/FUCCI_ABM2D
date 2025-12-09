@@ -4,7 +4,9 @@ __pycache__/
 *$py.class
 
 # Project Directories
-data
+#data
+data/dataset2/*
+data/sobol/*
 
 # C extensions
 *.so
